@@ -8,52 +8,54 @@
 </head>
 <body>
     <header>
-        <button id="database-btn" class="side-btn">Database</button>
         <h1 style="font-family: 'Pacifico', cursive;">SupermAIket</h1>
-        <button id="cart-btn">
-            🛒 Cart (<span id="cart-count">0</span>)
-        </button>
+        <div class="header-actions">
+            <button id="database-btn" class="side-btn">Database</button>
+            <button id="cart-btn">
+                <span>Cart (<span id="cart-count">0</span>)</span>
+            </button>
+        </div>
     </header>
     <main>
         <div class="items-container">
             <button class="item-btn" data-item="Apple">
-                <span class="item-emoji">🍎</span>
+                <span class="item-emoji" role="img" aria-label="Apple">🍎</span>
                 Apple
             </button>
             <button class="item-btn" data-item="Banana">
-                <span class="item-emoji">🍌</span>
+                <span class="item-emoji" role="img" aria-label="Banana">🍌</span>
                 Banana
             </button>
             <button class="item-btn" data-item="Bread">
-                <span class="item-emoji">🍞</span>
+                <span class="item-emoji" role="img" aria-label="Bread">🍞</span>
                 Bread
             </button>
             <button class="item-btn" data-item="Milk">
-                <span class="item-emoji">🥛</span>
+                <span class="item-emoji" role="img" aria-label="Milk">🥛</span>
                 Milk
             </button>
             <button class="item-btn" data-item="Eggs">
-                <span class="item-emoji">🥚</span>
+                <span class="item-emoji" role="img" aria-label="Eggs">🥚</span>
                 Eggs
             </button>
             <button class="item-btn" data-item="Cheese">
-                <span class="item-emoji">🧀</span>
+                <span class="item-emoji" role="img" aria-label="Cheese">🧀</span>
                 Cheese
             </button>
             <button class="item-btn" data-item="Chicken">
-                <span class="item-emoji">🍗</span>
+                <span class="item-emoji" role="img" aria-label="Chicken">🍗</span>
                 Chicken
             </button>
             <button class="item-btn" data-item="Rice">
-                <span class="item-emoji">🍚</span>
+                <span class="item-emoji" role="img" aria-label="Rice">🍚</span>
                 Rice
             </button>
             <button class="item-btn" data-item="Tomato">
-                <span class="item-emoji">🍅</span>
+                <span class="item-emoji" role="img" aria-label="Tomato">🍅</span>
                 Tomato
             </button>
             <button class="item-btn" data-item="Lettuce">
-                <span class="item-emoji">🥬</span>
+                <span class="item-emoji" role="img" aria-label="Lettuce">🥬</span>
                 Lettuce
             </button>
         </div>
@@ -63,7 +65,6 @@
             <h2>Your Cart</h2>
             <ul id="cart-items"></ul>
             <div class="cart-actions">
-                <button id="database-btn" class="side-btn">Database</button>
                 <button id="checkout-btn">Checkout</button>
                 <button id="close-cart-btn">Close</button>
             </div>
