@@ -7,15 +7,23 @@ let transactionCounter = 1;
 function updateCartCount() {
     const count = Object.values(cart).reduce((a, b) => a + b, 0);
     document.getElementById('cart-count').textContent = count;
+    // Enable/disable checkout button based on cart content
+    const checkoutBtn = document.getElementById('checkout-btn');
+    if (checkoutBtn) {
+        checkoutBtn.disabled = count === 0;
+    }
 }
 
 function updateCartModal() {
     const cartItems = document.getElementById('cart-items');
     cartItems.innerHTML = '';
+    const checkoutBtn = document.getElementById('checkout-btn');
     if (Object.keys(cart).length === 0) {
         cartItems.innerHTML = '<li>Your cart is empty.</li>';
+        if (checkoutBtn) checkoutBtn.disabled = true;
         return;
     }
+    if (checkoutBtn) checkoutBtn.disabled = false;
     for (const [item, qty] of Object.entries(cart)) {
         const li = document.createElement('li');
         li.textContent = `${item} x${qty} `;
@@ -56,6 +64,73 @@ function showNotification(message) {
     }, 1800);
 }
 
+function flyEmojiToCart(emojiElem, btn) {
+    const cartBtn = document.getElementById('cart-btn');
+    if (!cartBtn || !emojiElem) return;
+
+    // Get bounding rectangles
+    const emojiRect = emojiElem.getBoundingClientRect();
+    const cartRect = cartBtn.getBoundingClientRect();
+
+    // Create a clone for animation
+    const flying = emojiElem.cloneNode(true);
+    flying.classList.add('flying-emoji');
+    document.body.appendChild(flying);
+
+    // Set initial position
+    flying.style.left = emojiRect.left + window.scrollX + 'px';
+    flying.style.top = emojiRect.top + window.scrollY + 'px';
+
+    // Calculate destination (center of cart button)
+    const destX = cartRect.left + cartRect.width / 2 - emojiRect.left - emojiRect.width / 2;
+    const destY = cartRect.top + cartRect.height / 2 - emojiRect.top - emojiRect.height / 2;
+
+    // Set the main movement as a transform inline for the animation
+    flying.style.setProperty('--fly-x', `${destX}px`);
+    flying.style.setProperty('--fly-y', `${destY}px`);
+
+    // Animate using JS-driven keyframes
+    flying.animate([
+        {
+            transform: 'translate(0, 0) scale(1)',
+            opacity: 1
+        },
+        {
+            // Move to cart
+            offset: 0.7,
+            transform: `translate(${destX}px, ${destY}px) scale(0.5)`,
+            opacity: 0.7
+        },
+        {
+            // Go up
+            offset: 0.75,
+            transform: `translate(${destX}px, ${destY - 40}px) scale(0.5)`,
+            opacity: 1
+        },
+        {
+            // Fall down into the button
+            offset: 0.85,
+            transform: `translate(${destX}px, ${destY}px) scale(0.5)`,
+            opacity: 1
+        },
+        {
+            // Fade out
+            offset: 1,
+            transform: `translate(${destX}px, ${destY}px) scale(0.5)`,
+            opacity: 0
+        }
+    ], {
+        duration: 2200,
+        easing: 'cubic-bezier(.4,2,.6,1)',
+        fill: 'forwards'
+    });
+
+    // Remove after animation
+    setTimeout(() => {
+        flying.remove();
+    }, 2200);
+}
+
 document.querySelectorAll('.item-btn').forEach(btn => {
     btn.addEventListener('click', () => {
         const item = btn.getAttribute('data-item');
@@ -67,6 +142,10 @@ document.querySelectorAll('.item-btn').forEach(btn => {
         void btn.offsetWidth; // force reflow for retrigger
         btn.classList.add('bounce');
         setTimeout(() => btn.classList.remove('bounce'), 500);
+
+        // Fly emoji animation
+        const emojiElem = btn.querySelector('.item-emoji');
+        flyEmojiToCart(emojiElem, btn);
     });
 });
 
@@ -97,7 +176,6 @@ checkoutBtn.addEventListener('click', () => {
         });
     }
 
-    alert('Thank you for shopping at SupermAIket!');
     for (const key in cart) delete cart[key];
     updateCartCount();
     updateCartModal();
