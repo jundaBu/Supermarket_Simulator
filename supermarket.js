@@ -4,6 +4,11 @@ const cart = {};
 const transactions = [];
 let transactionCounter = 1;
 
+// Pagination state
+let currentPage = 1;
+const totalPages = 6;
+let itemListenersAttached = false;
+
 function updateCartCount() {
     const count = Object.values(cart).reduce((a, b) => a + b, 0);
     document.getElementById('cart-count').textContent = count;
@@ -12,6 +17,58 @@ function updateCartCount() {
     if (checkoutBtn) {
         checkoutBtn.disabled = count === 0;
     }
+}
+
+function updatePagination() {
+    const prevBtn = document.getElementById('prev-page');
+    const nextBtn = document.getElementById('next-page');
+    const pageInfo = document.getElementById('page-info');
+    
+    prevBtn.disabled = currentPage === 1;
+    nextBtn.disabled = currentPage === totalPages;
+    pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+    
+    // Hide all pages
+    document.querySelectorAll('.page-content').forEach(page => {
+        page.classList.remove('active');
+    });
+    
+    // Show current page
+    const currentPageElement = document.querySelector(`[data-page="${currentPage}"]`);
+    if (currentPageElement) {
+        currentPageElement.classList.add('active');
+    }
+    
+    // Initialize item event listeners once
+    if (!itemListenersAttached) {
+        attachItemEventListeners();
+        itemListenersAttached = true;
+    }
+}
+
+function attachItemEventListeners() {
+    // Use event delegation - attach one listener to the items container
+    const itemsContainer = document.querySelector('.items-container');
+    
+    itemsContainer.addEventListener('click', (e) => {
+        const btn = e.target.closest('.item-btn');
+        if (!btn) return;
+        
+        const item = btn.getAttribute('data-item');
+        cart[item] = (cart[item] || 0) + 1;
+        updateCartCount();
+        showNotification(`${item} successfully added to cart`);
+        
+        // Add bounce animation
+        btn.classList.remove('bounce');
+        void btn.offsetWidth; // force reflow for retrigger
+        btn.classList.add('bounce');
+        setTimeout(() => btn.classList.remove('bounce'), 500);
+
+        // Fly emoji animation
+        const emojiElem = btn.querySelector('.item-emoji');
+        flyEmojiToCart(emojiElem, btn);
+    });
 }
 
 function updateCartModal() {
@@ -75,80 +132,91 @@ function flyEmojiToCart(emojiElem, btn) {
     // Create a clone for animation
     const flying = emojiElem.cloneNode(true);
     flying.classList.add('flying-emoji');
+    
+    // Set initial position (absolute positioning relative to page)
+    const startX = emojiRect.left + window.scrollX;
+    const startY = emojiRect.top + window.scrollY;
+    
+    flying.style.left = startX + 'px';
+    flying.style.top = startY + 'px';
+    flying.style.position = 'absolute';
+    flying.style.zIndex = '3000';
+    flying.style.pointerEvents = 'none';
+    
     document.body.appendChild(flying);
 
-    // Set initial position
-    flying.style.left = emojiRect.left + window.scrollX + 'px';
-    flying.style.top = emojiRect.top + window.scrollY + 'px';
+    // Calculate destination (center of cart button, absolute positioning)
+    const endX = cartRect.left + window.scrollX + (cartRect.width / 2) - (emojiRect.width / 2);
+    const endY = cartRect.top + window.scrollY + (cartRect.height / 2) - (emojiRect.height / 2);
+    
+    // Calculate the movement needed
+    const deltaX = endX - startX;
+    const deltaY = endY - startY;
 
-    // Calculate destination (center of cart button)
-    const destX = cartRect.left + cartRect.width / 2 - emojiRect.left - emojiRect.width / 2;
-    const destY = cartRect.top + cartRect.height / 2 - emojiRect.top - emojiRect.height / 2;
+    console.log('Flying emoji from:', startX, startY, 'to:', endX, endY, 'delta:', deltaX, deltaY);
 
-    // Set the main movement as a transform inline for the animation
-    flying.style.setProperty('--fly-x', `${destX}px`);
-    flying.style.setProperty('--fly-y', `${destY}px`);
-
-    // Animate using JS-driven keyframes
+    // Simple, reliable animation with better timing
     flying.animate([
         {
             transform: 'translate(0, 0) scale(1)',
             opacity: 1
         },
         {
-            // Move to cart
-            offset: 0.7,
-            transform: `translate(${destX}px, ${destY}px) scale(0.5)`,
-            opacity: 0.7
-        },
-        {
-            // Go up
-            offset: 0.75,
-            transform: `translate(${destX}px, ${destY - 40}px) scale(0.5)`,
-            opacity: 1
-        },
-        {
-            // Fall down into the button
+            // Stay visible most of the way
             offset: 0.85,
-            transform: `translate(${destX}px, ${destY}px) scale(0.5)`,
+            transform: `translate(${deltaX}px, ${deltaY}px) scale(0.3)`,
             opacity: 1
         },
         {
-            // Fade out
-            offset: 1,
-            transform: `translate(${destX}px, ${destY}px) scale(0.5)`,
+            // Quick fade at the very end
+            transform: `translate(${deltaX}px, ${deltaY}px) scale(0.3)`,
             opacity: 0
         }
     ], {
-        duration: 2200,
-        easing: 'cubic-bezier(.4,2,.6,1)',
+        duration: 1800,
+        easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)',
         fill: 'forwards'
     });
 
     // Remove after animation
     setTimeout(() => {
-        flying.remove();
-    }, 2200);
+        if (flying && flying.parentNode) {
+            flying.remove();
+        }
+    }, 1800);
 }
 
-document.querySelectorAll('.item-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-        const item = btn.getAttribute('data-item');
-        cart[item] = (cart[item] || 0) + 1;
-        updateCartCount();
-        showNotification(`${item} successfully added to cart`);
-        // Add bounce animation
-        btn.classList.remove('bounce'); // reset if needed
-        void btn.offsetWidth; // force reflow for retrigger
-        btn.classList.add('bounce');
-        setTimeout(() => btn.classList.remove('bounce'), 500);
+// Pagination event listeners
+const prevPageBtn = document.getElementById('prev-page');
+const nextPageBtn = document.getElementById('next-page');
 
-        // Fly emoji animation
-        const emojiElem = btn.querySelector('.item-emoji');
-        flyEmojiToCart(emojiElem, btn);
-    });
+prevPageBtn.addEventListener('click', () => {
+    if (currentPage > 1) {
+        currentPage--;
+        updatePagination();
+    }
 });
 
+nextPageBtn.addEventListener('click', () => {
+    if (currentPage < totalPages) {
+        currentPage++;
+        updatePagination();
+    }
+});
+
+// Initial setup
+document.addEventListener('DOMContentLoaded', () => {
+    updatePagination();
+    updateCartCount();
+});
+
+// Initial setup
+document.addEventListener('DOMContentLoaded', () => {
+    updatePagination();
+    updateCartCount();
+});
+
+// Cart and database modal logic
 const cartBtn = document.getElementById('cart-btn');
 const cartModal = document.getElementById('cart-modal');
 const closeCartBtn = document.getElementById('close-cart-btn');

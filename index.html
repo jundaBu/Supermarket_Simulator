@@ -17,88 +17,342 @@
         </div>
     </header>
     <main>
+        <div class="pagination-controls">
+            <button id="prev-page" class="page-btn" disabled>‹ Previous</button>
+            <span id="page-info">Page 1 of 6</span>
+            <button id="next-page" class="page-btn">Next ›</button>
+        </div>
         <div class="items-container">
-            <button class="item-btn" data-item="Apple">
-                <span class="item-emoji" role="img" aria-label="Apple">🍎</span>
-                Apple
-            </button>
-            <button class="item-btn" data-item="Banana">
-                <span class="item-emoji" role="img" aria-label="Banana">🍌</span>
-                Banana
-            </button>
-            <button class="item-btn" data-item="Bread">
-                <span class="item-emoji" role="img" aria-label="Bread">🍞</span>
-                Bread
-            </button>
-            <button class="item-btn" data-item="Milk">
-                <span class="item-emoji" role="img" aria-label="Milk">🥛</span>
-                Milk
-            </button>
-            <button class="item-btn" data-item="Eggs">
-                <span class="item-emoji" role="img" aria-label="Eggs">🥚</span>
-                Eggs
-            </button>
-            <button class="item-btn" data-item="Cheese">
-                <span class="item-emoji" role="img" aria-label="Cheese">🧀</span>
-                Cheese
-            </button>
-            <button class="item-btn" data-item="Chicken">
-                <span class="item-emoji" role="img" aria-label="Chicken">🍗</span>
-                Chicken
-            </button>
-            <button class="item-btn" data-item="Rice">
-                <span class="item-emoji" role="img" aria-label="Rice">🍚</span>
-                Rice
-            </button>
-            <button class="item-btn" data-item="Tomato">
-                <span class="item-emoji" role="img" aria-label="Tomato">🍅</span>
-                Tomato
-            </button>
-            <button class="item-btn" data-item="Lettuce">
-                <span class="item-emoji" role="img" aria-label="Lettuce">🥬</span>
-                Lettuce
-            </button>
-            <!-- New items below -->
-            <button class="item-btn" data-item="Orange">
-                <span class="item-emoji" role="img" aria-label="Orange">🍊</span>
-                Orange
-            </button>
-            <button class="item-btn" data-item="Grapes">
-                <span class="item-emoji" role="img" aria-label="Grapes">🍇</span>
-                Grapes
-            </button>
-            <button class="item-btn" data-item="Carrot">
-                <span class="item-emoji" role="img" aria-label="Carrot">🥕</span>
-                Carrot
-            </button>
-            <button class="item-btn" data-item="Fish">
-                <span class="item-emoji" role="img" aria-label="Fish">🐟</span>
-                Fish
-            </button>
-            <button class="item-btn" data-item="Watermelon">
-                <span class="item-emoji" role="img" aria-label="Watermelon">🍉</span>
-                Watermelon
-            </button>
-            <button class="item-btn" data-item="Avocado">
-                <span class="item-emoji" role="img" aria-label="Avocado">🥑</span>
-                Avocado
-            </button>
-            <button class="item-btn" data-item="Broccoli">
-                <span class="item-emoji" role="img" aria-label="Broccoli">🥦</span>
-                Broccoli
-            </button>
-            <button class="item-btn" data-item="Cookie">
-                <span class="item-emoji" role="img" aria-label="Cookie">🍪</span>
-                Cookie
-            </button>
-            <button class="item-btn" data-item="Ice Cream">
-                <span class="item-emoji" role="img" aria-label="Ice Cream">🍦</span>
-                Ice Cream
-            </button>
-            <button class="item-btn" data-item="Pizza">
-                <span class="item-emoji" role="img" aria-label="Pizza">🍕</span>
-                Pizza
-            </button>
+
+            <!-- Page 1 - Fruits & Vegetables -->
+            <div class="page-content active" data-page="1">
+                <h2 class="page-title">🍎 Fruits & Vegetables</h2>
+                <div class="items-grid">
+                    <button class="item-btn" data-item="Apple">
+                        <span class="item-emoji" role="img" aria-label="Apple">🍎</span>
+                        Apple
+                    </button>
+                    <button class="item-btn" data-item="Banana">
+                        <span class="item-emoji" role="img" aria-label="Banana">🍌</span>
+                        Banana
+                    </button>
+                    <button class="item-btn" data-item="Orange">
+                        <span class="item-emoji" role="img" aria-label="Orange">🍊</span>
+                        Orange
+                    </button>
+                    <button class="item-btn" data-item="Strawberry">
+                        <span class="item-emoji" role="img" aria-label="Strawberry">🍓</span>
+                        Strawberry
+                    </button>
+                    <button class="item-btn" data-item="Grapes">
+                        <span class="item-emoji" role="img" aria-label="Grapes">🍇</span>
+                        Grapes
+                    </button>
+                    <button class="item-btn" data-item="Watermelon">
+                        <span class="item-emoji" role="img" aria-label="Watermelon">🍉</span>
+                        Watermelon
+                    </button>
+                    <button class="item-btn" data-item="Tomato">
+                        <span class="item-emoji" role="img" aria-label="Tomato">🍅</span>
+                        Tomato
+                    </button>
+                    <button class="item-btn" data-item="Lettuce">
+                        <span class="item-emoji" role="img" aria-label="Lettuce">🥬</span>
+                        Lettuce
+                    </button>
+                    <button class="item-btn" data-item="Carrot">
+                        <span class="item-emoji" role="img" aria-label="Carrot">🥕</span>
+                        Carrot
+                    </button>
+                    <button class="item-btn" data-item="Broccoli">
+                        <span class="item-emoji" role="img" aria-label="Broccoli">🥦</span>
+                        Broccoli
+                    </button>
+                    <button class="item-btn" data-item="Potato">
+                        <span class="item-emoji" role="img" aria-label="Potato">🥔</span>
+                        Potato
+                    </button>
+                    <button class="item-btn" data-item="Onion">
+                        <span class="item-emoji" role="img" aria-label="Onion">🧅</span>
+                        Onion
+                    </button>
+                </div>
+            </div>
+
+            <!-- Page 2 - Dairy & Meat -->
+            <div class="page-content" data-page="2">
+                <h2 class="page-title">🥛 Dairy & Meat</h2>
+                <div class="items-grid">
+                    <button class="item-btn" data-item="Milk">
+                        <span class="item-emoji" role="img" aria-label="Milk">🥛</span>
+                        Milk
+                    </button>
+                    <button class="item-btn" data-item="Eggs">
+                        <span class="item-emoji" role="img" aria-label="Eggs">🥚</span>
+                        Eggs
+                    </button>
+                    <button class="item-btn" data-item="Cheese">
+                        <span class="item-emoji" role="img" aria-label="Cheese">🧀</span>
+                        Cheese
+                    </button>
+                    <button class="item-btn" data-item="Butter">
+                        <span class="item-emoji" role="img" aria-label="Butter">🧈</span>
+                        Butter
+                    </button>
+                    <button class="item-btn" data-item="Yogurt">
+                        <span class="item-emoji" role="img" aria-label="Yogurt">🥛</span>
+                        Yogurt
+                    </button>
+                    <button class="item-btn" data-item="Chicken">
+                        <span class="item-emoji" role="img" aria-label="Chicken">🍗</span>
+                        Chicken
+                    </button>
+                    <button class="item-btn" data-item="Beef">
+                        <span class="item-emoji" role="img" aria-label="Beef">🥩</span>
+                        Beef
+                    </button>
+                    <button class="item-btn" data-item="Pork">
+                        <span class="item-emoji" role="img" aria-label="Pork">🥓</span>
+                        Pork
+                    </button>
+                    <button class="item-btn" data-item="Fish">
+                        <span class="item-emoji" role="img" aria-label="Fish">🐟</span>
+                        Fish
+                    </button>
+                    <button class="item-btn" data-item="Shrimp">
+                        <span class="item-emoji" role="img" aria-label="Shrimp">🦐</span>
+                        Shrimp
+                    </button>
+                    <button class="item-btn" data-item="Ham">
+                        <span class="item-emoji" role="img" aria-label="Ham">🍖</span>
+                        Ham
+                    </button>
+                    <button class="item-btn" data-item="Sausage">
+                        <span class="item-emoji" role="img" aria-label="Sausage">🌭</span>
+                        Sausage
+                    </button>
+                </div>
+            </div>
+
+            <!-- Page 3 - Pantry & Snacks -->
+            <div class="page-content" data-page="3">
+                <h2 class="page-title">🍞 Pantry & Snacks</h2>
+                <div class="items-grid">
+                    <button class="item-btn" data-item="Bread">
+                        <span class="item-emoji" role="img" aria-label="Bread">🍞</span>
+                        Bread
+                    </button>
+                    <button class="item-btn" data-item="Rice">
+                        <span class="item-emoji" role="img" aria-label="Rice">🍚</span>
+                        Rice
+                    </button>
+                    <button class="item-btn" data-item="Pasta">
+                        <span class="item-emoji" role="img" aria-label="Pasta">🍝</span>
+                        Pasta
+                    </button>
+                    <button class="item-btn" data-item="Cereal">
+                        <span class="item-emoji" role="img" aria-label="Cereal">🥣</span>
+                        Cereal
+                    </button>
+                    <button class="item-btn" data-item="Crackers">
+                        <span class="item-emoji" role="img" aria-label="Crackers">🍘</span>
+                        Crackers
+                    </button>
+                    <button class="item-btn" data-item="Cookies">
+                        <span class="item-emoji" role="img" aria-label="Cookies">🍪</span>
+                        Cookies
+                    </button>
+                    <button class="item-btn" data-item="Chips">
+                        <span class="item-emoji" role="img" aria-label="Chips">🥔</span>
+                        Chips
+                    </button>
+                    <button class="item-btn" data-item="Nuts">
+                        <span class="item-emoji" role="img" aria-label="Nuts">🥜</span>
+                        Nuts
+                    </button>
+                    <button class="item-btn" data-item="Chocolate">
+                        <span class="item-emoji" role="img" aria-label="Chocolate">🍫</span>
+                        Chocolate
+                    </button>
+                    <button class="item-btn" data-item="Coffee">
+                        <span class="item-emoji" role="img" aria-label="Coffee">☕</span>
+                        Coffee
+                    </button>
+                    <button class="item-btn" data-item="Tea">
+                        <span class="item-emoji" role="img" aria-label="Tea">🍵</span>
+                        Tea
+                    </button>
+                    <button class="item-btn" data-item="Juice">
+                        <span class="item-emoji" role="img" aria-label="Juice">🧃</span>
+                        Juice
+                    </button>
+                </div>
+            </div>
+
+            <!-- Page 4 - Clothing -->
+            <div class="page-content" data-page="4">
+                <h2 class="page-title">👕 Clothing</h2>
+                <div class="items-grid">
+                    <button class="item-btn" data-item="T-Shirt">
+                        <span class="item-emoji" role="img" aria-label="T-Shirt">👕</span>
+                        T-Shirt
+                    </button>
+                    <button class="item-btn" data-item="Jeans">
+                        <span class="item-emoji" role="img" aria-label="Jeans">👖</span>
+                        Jeans
+                    </button>
+                    <button class="item-btn" data-item="Dress">
+                        <span class="item-emoji" role="img" aria-label="Dress">👗</span>
+                        Dress
+                    </button>
+                    <button class="item-btn" data-item="Jacket">
+                        <span class="item-emoji" role="img" aria-label="Jacket">🧥</span>
+                        Jacket
+                    </button>
+                    <button class="item-btn" data-item="Sweater">
+                        <span class="item-emoji" role="img" aria-label="Sweater">🧶</span>
+                        Sweater
+                    </button>
+                    <button class="item-btn" data-item="Shoes">
+                        <span class="item-emoji" role="img" aria-label="Shoes">👟</span>
+                        Shoes
+                    </button>
+                    <button class="item-btn" data-item="Boots">
+                        <span class="item-emoji" role="img" aria-label="Boots">🥾</span>
+                        Boots
+                    </button>
+                    <button class="item-btn" data-item="Sandals">
+                        <span class="item-emoji" role="img" aria-label="Sandals">👡</span>
+                        Sandals
+                    </button>
+                    <button class="item-btn" data-item="Hat">
+                        <span class="item-emoji" role="img" aria-label="Hat">🧢</span>
+                        Hat
+                    </button>
+                    <button class="item-btn" data-item="Socks">
+                        <span class="item-emoji" role="img" aria-label="Socks">🧦</span>
+                        Socks
+                    </button>
+                    <button class="item-btn" data-item="Underwear">
+                        <span class="item-emoji" role="img" aria-label="Underwear">🩲</span>
+                        Underwear
+                    </button>
+                    <button class="item-btn" data-item="Scarf">
+                        <span class="item-emoji" role="img" aria-label="Scarf">🧣</span>
+                        Scarf
+                    </button>
+                </div>
+            </div>
+
+            <!-- Page 5 - Electronics -->
+            <div class="page-content" data-page="5">
+                <h2 class="page-title">📱 Electronics</h2>
+                <div class="items-grid">
+                    <button class="item-btn" data-item="Watch">
+                        <span class="item-emoji" role="img" aria-label="Watch">⌚</span>
+                        Watch
+                    </button>
+                    <button class="item-btn" data-item="Phone">
+                        <span class="item-emoji" role="img" aria-label="Phone">📱</span>
+                        Phone
+                    </button>
+                    <button class="item-btn" data-item="Laptop">
+                        <span class="item-emoji" role="img" aria-label="Laptop">💻</span>
+                        Laptop
+                    </button>
+                    <button class="item-btn" data-item="Computer">
+                        <span class="item-emoji" role="img" aria-label="Computer">🖥️</span>
+                        Computer
+                    </button>
+                    <button class="item-btn" data-item="Camera">
+                        <span class="item-emoji" role="img" aria-label="Camera">📷</span>
+                        Camera
+                    </button>
+                    <button class="item-btn" data-item="TV">
+                        <span class="item-emoji" role="img" aria-label="TV">📺</span>
+                        TV
+                    </button>
+                    <button class="item-btn" data-item="Flashlight">
+                        <span class="item-emoji" role="img" aria-label="Flashlight">🔦</span>
+                        Flashlight
+                    </button>
+                    <button class="item-btn" data-item="Printer">
+                        <span class="item-emoji" role="img" aria-label="Printer">🖨️</span>
+                        Printer
+                    </button>
+                    <button class="item-btn" data-item="Video Game">
+                        <span class="item-emoji" role="img" aria-label="Video Game">🎮</span>
+                        Video Game
+                    </button>
+                    <button class="item-btn" data-item="Radio">
+                        <span class="item-emoji" role="img" aria-label="Radio">📻</span>
+                        Radio
+                    </button>
+                    <button class="item-btn" data-item="Clock">
+                        <span class="item-emoji" role="img" aria-label="Clock">🕰️</span>
+                        Clock
+                    </button>
+                    <button class="item-btn" data-item="Microphone">
+                        <span class="item-emoji" role="img" aria-label="Microphone">🎤</span>
+                        Microphone
+                    </button>
+                </div>
+            </div>
+
+            <!-- Page 6 - Sports Equipment -->
+            <div class="page-content" data-page="6">
+                <h2 class="page-title">⚽ Sports Equipment</h2>
+                <div class="items-grid">
+                    <button class="item-btn" data-item="Soccer Ball">
+                        <span class="item-emoji" role="img" aria-label="Soccer Ball">⚽</span>
+                        Soccer Ball
+                    </button>
+                    <button class="item-btn" data-item="Basketball">
+                        <span class="item-emoji" role="img" aria-label="Basketball">🏀</span>
+                        Basketball
+                    </button>
+                    <button class="item-btn" data-item="Tennis Ball">
+                        <span class="item-emoji" role="img" aria-label="Tennis Ball">🎾</span>
+                        Tennis Ball
+                    </button>
+                    <button class="item-btn" data-item="Tennis Racket">
+                        <span class="item-emoji" role="img" aria-label="Tennis Racket">🎾</span>
+                        Tennis Racket
+                    </button>
+                    <button class="item-btn" data-item="Baseball">
+                        <span class="item-emoji" role="img" aria-label="Baseball">⚾</span>
+                        Baseball
+                    </button>
+                    <button class="item-btn" data-item="Baseball Bat">
+                        <span class="item-emoji" role="img" aria-label="Baseball Bat">🏏</span>
+                        Baseball Bat
+                    </button>
+                    <button class="item-btn" data-item="Golf Ball">
+                        <span class="item-emoji" role="img" aria-label="Golf Ball">⛳</span>
+                        Golf Ball
+                    </button>
+                    <button class="item-btn" data-item="Yoga Mat">
+                        <span class="item-emoji" role="img" aria-label="Yoga Mat">🧘</span>
+                        Yoga Mat
+                    </button>
+                    <button class="item-btn" data-item="Dumbbells">
+                        <span class="item-emoji" role="img" aria-label="Dumbbells">🏋️</span>
+                        Dumbbells
+                    </button>
+                    <button class="item-btn" data-item="Swimming Goggles">
+                        <span class="item-emoji" role="img" aria-label="Swimming Goggles">🥽</span>
+                        Swimming Goggles
+                    </button>
+                    <button class="item-btn" data-item="Bicycle Helmet">
+                        <span class="item-emoji" role="img" aria-label="Bicycle Helmet">🚴</span>
+                        Bicycle Helmet
+                    </button>
+                    <button class="item-btn" data-item="Running Shoes">
+                        <span class="item-emoji" role="img" aria-label="Running Shoes">👟</span>
+                        Running Shoes
+                    </button>
+                </div>
+            </div>
         </div>
     </main>
     <div id="cart-modal" class="modal hidden">
