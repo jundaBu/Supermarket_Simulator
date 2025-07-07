@@ -62,6 +62,11 @@ document.querySelectorAll('.item-btn').forEach(btn => {
         cart[item] = (cart[item] || 0) + 1;
         updateCartCount();
         showNotification(`${item} successfully added to cart`);
+        // Add bounce animation
+        btn.classList.remove('bounce'); // reset if needed
+        void btn.offsetWidth; // force reflow for retrigger
+        btn.classList.add('bounce');
+        setTimeout(() => btn.classList.remove('bounce'), 500);
     });
 });
 
