@@ -11,6 +11,7 @@
         <h1 style="font-family: 'Pacifico', cursive;">SupermAIket</h1>
         <div class="header-actions">
             <button id="database-btn" class="side-btn">Database</button>
+            <button id="analytics-btn" class="side-btn">Analytics</button>
             <button id="cart-btn">
                 <span>Cart (<span id="cart-count">0</span>)</span>
             </button>
@@ -18,14 +19,15 @@
     </header>
     <main>
         <div class="pagination-controls">
-            <button id="prev-page" class="page-btn" disabled>‹ Previous</button>
+            <button id="prev-page" class="page-btn" disabled>‹</button>
             <span id="page-info">Page 1 of 6</span>
-            <button id="next-page" class="page-btn">Next ›</button>
+            <button id="next-page" class="page-btn">›</button>
         </div>
         <div class="items-container">
+
             <!-- Page 1 - Fruits & Vegetables -->
             <div class="page-content active" data-page="1">
-                <h2 class="page-title">🍎 Fruits & Vegetables</h2>
+                <h2 class="page-title">Fruits & Vegetables</h2>
                 <div class="items-grid">
                     <button class="item-btn" data-item="Apple">
                         <span class="item-emoji" role="img" aria-label="Apple">🍎</span>
@@ -80,7 +82,7 @@
 
             <!-- Page 2 - Dairy & Meat -->
             <div class="page-content" data-page="2">
-                <h2 class="page-title">🥛 Dairy & Meat</h2>
+                <h2 class="page-title">Dairy & Meat</h2>
                 <div class="items-grid">
                     <button class="item-btn" data-item="Milk">
                         <span class="item-emoji" role="img" aria-label="Milk">🥛</span>
@@ -135,7 +137,7 @@
 
             <!-- Page 3 - Pantry & Snacks -->
             <div class="page-content" data-page="3">
-                <h2 class="page-title">🍞 Pantry & Snacks</h2>
+                <h2 class="page-title">Pantry & Snacks</h2>
                 <div class="items-grid">
                     <button class="item-btn" data-item="Bread">
                         <span class="item-emoji" role="img" aria-label="Bread">🍞</span>
@@ -190,7 +192,7 @@
 
             <!-- Page 4 - Clothing -->
             <div class="page-content" data-page="4">
-                <h2 class="page-title">👕 Clothing</h2>
+                <h2 class="page-title">Clothing</h2>
                 <div class="items-grid">
                     <button class="item-btn" data-item="T-Shirt">
                         <span class="item-emoji" role="img" aria-label="T-Shirt">👕</span>
@@ -245,7 +247,7 @@
 
             <!-- Page 5 - Electronics -->
             <div class="page-content" data-page="5">
-                <h2 class="page-title">📱 Electronics</h2>
+                <h2 class="page-title">Electronics</h2>
                 <div class="items-grid">
                     <button class="item-btn" data-item="Watch">
                         <span class="item-emoji" role="img" aria-label="Watch">⌚</span>
@@ -300,7 +302,7 @@
 
             <!-- Page 6 - Sports Equipment -->
             <div class="page-content" data-page="6">
-                <h2 class="page-title">⚽ Sports Equipment</h2>
+                <h2 class="page-title">Sports Equipment</h2>
                 <div class="items-grid">
                     <button class="item-btn" data-item="Soccer Ball">
                         <span class="item-emoji" role="img" aria-label="Soccer Ball">⚽</span>
@@ -315,7 +317,7 @@
                         Tennis Ball
                     </button>
                     <button class="item-btn" data-item="Tennis Racket">
-                        <span class="item-emoji" role="img" aria-label="Tennis Racket">🎾</span>
+                        <span class="item-emoji" role="img" aria-label="Ping-Pong Paddle">🏓</span>
                         Tennis Racket
                     </button>
                     <button class="item-btn" data-item="Baseball">
@@ -380,6 +382,15 @@
                 </tbody>
             </table>
             <button id="close-database-btn">Close</button>
+        </div>
+    </div>
+    <div id="analytics-modal" class="modal hidden">
+        <div class="modal-content">
+            <h2>🧠 Customer Behavior Analytics</h2>
+            <div id="analytics-content">
+                <!-- Analytics results will be inserted here -->
+            </div>
+            <button id="close-analytics-btn">Close</button>
         </div>
     </div>
     <script src="supermarket.js"></script>
