@@ -4,6 +4,10 @@ const cart = {};
 const transactions = [];
 let transactionCounter = 1;
 
+// Cache for clustering analysis
+let cachedAnalysis = null;
+let lastAnalysisTransactionCount = 0;
+
 // Pagination state
 let currentPage = 1;
 const totalPages = 6;
@@ -242,6 +246,9 @@ checkoutBtn.addEventListener('click', () => {
             items: itemsPurchased,
             totalItems: totalItems
         });
+        
+        // Invalidate cached analysis when new transaction is added
+        cachedAnalysis = null;
     }
 
     for (const key in cart) delete cart[key];
@@ -255,6 +262,273 @@ const databaseBtn = document.getElementById('database-btn');
 const databaseModal = document.getElementById('database-modal');
 const closeDatabaseBtn = document.getElementById('close-database-btn');
 
+// K-means clustering implementation
+class KMeansClusterer {
+    constructor(k = 3) {
+        this.k = k;
+        this.centroids = [];
+        this.clusters = [];
+    }
+
+    // Convert transaction data to feature vectors
+    prepareData(transactions) {
+        // Get all unique items across all transactions
+        const allItems = new Set();
+        transactions.forEach(tx => {
+            tx.items.forEach(item => allItems.add(item.item));
+        });
+        const itemList = Array.from(allItems).sort();
+        
+        // Create feature vectors (each transaction becomes a vector)
+        return transactions.map(tx => {
+            const vector = new Array(itemList.length).fill(0);
+            tx.items.forEach(item => {
+                const index = itemList.indexOf(item.item);
+                if (index !== -1) {
+                    vector[index] = item.qty;
+                }
+            });
+            return { vector, transaction: tx, itemList };
+        });
+    }
+
+    // Calculate Euclidean distance between two points
+    distance(point1, point2) {
+        if (point1.length !== point2.length) return Infinity;
+        return Math.sqrt(
+            point1.reduce((sum, val, i) => sum + Math.pow(val - point2[i], 2), 0)
+        );
+    }
+
+    // Initialize centroids with deterministic seeding based on data
+    initializeCentroids(data) {
+        this.centroids = [];
+        const numFeatures = data[0].vector.length;
+        
+        // Use a simple deterministic approach: spread centroids evenly
+        for (let i = 0; i < this.k; i++) {
+            const centroid = new Array(numFeatures);
+            
+            // For each feature, use different points as seeds
+            for (let j = 0; j < numFeatures; j++) {
+                const values = data.map(d => d.vector[j]).filter(v => v > 0);
+                if (values.length > 0) {
+                    // Use deterministic selection based on cluster index
+                    const seedIndex = (i * 13 + j * 7) % values.length;
+                    centroid[j] = values[seedIndex] || 0;
+                } else {
+                    centroid[j] = 0;
+                }
+            }
+            this.centroids.push(centroid);
+        }
+    }
+
+    // Assign each point to the nearest centroid
+    assignToClusters(data) {
+        this.clusters = Array(this.k).fill().map(() => []);
+        
+        data.forEach(point => {
+            let minDistance = Infinity;
+            let closestCluster = 0;
+            
+            this.centroids.forEach((centroid, i) => {
+                const dist = this.distance(point.vector, centroid);
+                if (dist < minDistance) {
+                    minDistance = dist;
+                    closestCluster = i;
+                }
+            });
+            
+            this.clusters[closestCluster].push(point);
+        });
+    }
+
+    // Update centroids to the mean of their clusters
+    updateCentroids() {
+        this.centroids = this.clusters.map((cluster, clusterIndex) => {
+            if (cluster.length === 0) {
+                // Keep the old centroid if cluster is empty
+                return [...this.centroids[clusterIndex]];
+            }
+            
+            const dimensions = cluster[0].vector.length;
+            const newCentroid = new Array(dimensions).fill(0);
+            
+            // Calculate mean for each dimension
+            cluster.forEach(point => {
+                point.vector.forEach((val, i) => {
+                    newCentroid[i] += val;
+                });
+            });
+            
+            return newCentroid.map(sum => sum / cluster.length);
+        });
+    }
+
+    // Main clustering algorithm
+    cluster(transactions, maxIterations = 100) {
+        if (transactions.length < this.k) {
+            return { 
+                success: false, 
+                error: `Need at least ${this.k} transactions for clustering. Currently have ${transactions.length}.` 
+            };
+        }
+
+        const data = this.prepareData(transactions);
+        if (data.length === 0 || data[0].vector.length === 0) {
+            return { 
+                success: false, 
+                error: "No valid transaction data found for clustering." 
+            };
+        }
+
+        this.initializeCentroids(data);
+        
+        let iteration = 0;
+        for (iteration = 0; iteration < maxIterations; iteration++) {
+            const oldCentroids = this.centroids.map(c => [...c]);
+            
+            this.assignToClusters(data);
+            this.updateCentroids();
+            
+            // Check for convergence
+            const converged = this.centroids.every((centroid, i) => 
+                this.distance(centroid, oldCentroids[i]) < 0.001
+            );
+            
+            if (converged) break;
+        }
+        
+        return {
+            success: true,
+            clusters: this.clusters,
+            centroids: this.centroids,
+            itemList: data[0]?.itemList || [],
+            iterations: iteration + 1
+        };
+    }
+}
+
+// Analyze customer behavior using k-means clustering
+function analyzeCustomerBehavior() {
+    if (transactions.length < 5) {
+        showNotification("Need at least 5 transactions for meaningful clustering analysis");
+        return;
+    }
+
+    // Check if we have cached analysis for current transaction count
+    if (cachedAnalysis && lastAnalysisTransactionCount === transactions.length) {
+        showClusteringResults(cachedAnalysis);
+        return;
+    }
+
+    const clusterer = new KMeansClusterer(5); // Create 5 customer segments
+    const result = clusterer.cluster(transactions);
+    
+    if (!result.success) {
+        showNotification(result.error);
+        return;
+    }
+
+    // Cache the results
+    cachedAnalysis = result;
+    lastAnalysisTransactionCount = transactions.length;
+
+    // Display results in the analytics modal
+    showClusteringResults(result);
+}
+
+// Display clustering results in a user-friendly format
+function showClusteringResults(result) {
+    const modal = document.getElementById('analytics-modal');
+    const contentDiv = document.getElementById('analytics-content');
+    
+    const analysisStatus = cachedAnalysis && lastAnalysisTransactionCount === transactions.length 
+        ? `<span style="color: #4caf50;">📊 Current Analysis</span>` 
+        : `<span style="color: #ff9800;">🔄 Analysis Updated</span>`;
+    
+    let html = `<div class="analytics-summary">
+        <p><strong>Analysis Complete!</strong> Found ${result.clusters.length} customer segments from ${transactions.length} transactions.</p>
+        <p><em>Converged in ${result.iterations} iterations</em> • ${analysisStatus}</p>
+        <p style="font-size: 0.9em; color: #666;"><em>Analysis will update when new transactions are added through checkout.</em></p>
+    </div>`;
+    
+    result.clusters.forEach((cluster, i) => {
+        if (cluster.length === 0) return;
+        
+        // Calculate cluster statistics
+        const itemCounts = {};
+        let totalQuantity = 0;
+        
+        cluster.forEach(point => {
+            point.transaction.items.forEach(item => {
+                itemCounts[item.item] = (itemCounts[item.item] || 0) + item.qty;
+                totalQuantity += item.qty;
+            });
+        });
+        
+        // Sort items by popularity in this cluster
+        const topItems = Object.entries(itemCounts)
+            .sort(([,a], [,b]) => b - a)
+            .slice(0, 8); // Show top 8 items
+        
+        const avgTransactionSize = (totalQuantity / cluster.length).toFixed(1);
+        
+        // Generate cluster description
+        const clusterNames = [
+            "🛍️ Bulk Shoppers",
+            "🥗 Health-Conscious Buyers", 
+            "🏃‍♂️ Quick Shoppers",
+            "👨‍👩‍👧‍👦 Family Shoppers",
+            "🎯 Specialty Buyers"
+        ];
+        
+        html += `<div class="cluster-group">
+            <h4>${clusterNames[i] || `Customer Segment ${i + 1}`} 
+                <span style="font-weight: normal; color: #666;">(${cluster.length} transactions)</span>
+            </h4>
+            
+            <div class="cluster-stats">
+                <strong>Average items per transaction:</strong> ${avgTransactionSize}
+            </div>
+            
+            <h5 style="margin: 12px 0 8px 0; color: #7b1fa2;">Most Popular Items:</h5>
+            <ul class="cluster-items">`;
+        
+        topItems.forEach(([item, count]) => {
+            const percentage = ((count / totalQuantity) * 100).toFixed(1);
+            html += `<li>
+                <span>${item}</span>
+                <span class="item-count">${count} units (${percentage}%)</span>
+            </li>`;
+        });
+        
+        html += '</ul></div>';
+    });
+    
+    if (result.clusters.every(cluster => cluster.length === 0)) {
+        html = '<div class="no-data-message">No meaningful clusters could be formed from the current data.</div>';
+    }
+    
+    contentDiv.innerHTML = html;
+    modal.classList.remove('hidden');
+}
+
+// Analytics modal event listeners
+const analyticsBtn = document.getElementById('analytics-btn');
+const analyticsModal = document.getElementById('analytics-modal');
+const closeAnalyticsBtn = document.getElementById('close-analytics-btn');
+
+analyticsBtn.addEventListener('click', () => {
+    analyzeCustomerBehavior();
+});
+
+closeAnalyticsBtn.addEventListener('click', () => {
+    analyticsModal.classList.add('hidden');
+});
+
+// Database modal logic
 function renderDatabaseTable() {
     const tbody = document.querySelector('#database-table tbody');
     tbody.innerHTML = '';
