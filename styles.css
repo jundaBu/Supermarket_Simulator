@@ -341,7 +341,7 @@ h1 {
 
 #database-btn {
     position: static;
-    background: linear-gradient(90deg, #1976d2 60%, #64b5f6 100%);
+    background: #1976d2;
     color: #fff;
     border: none;
     border-radius: 10px;
@@ -362,7 +362,7 @@ h1 {
 
 #analytics-btn {
     position: static;
-    background: linear-gradient(90deg, #7b1fa2 60%, #ba68c8 100%);
+    background: #7b1fa2;
     color: #fff;
     border: none;
     border-radius: 10px;
@@ -526,12 +526,12 @@ h1 {
 }
 
 .page-btn {
-    background: linear-gradient(90deg, #388e3c 60%, #66bb6a 100%);
+    background: #388e3c;
     color: #fff;
     border: none;
-    border-radius: 50%;
-    padding: 16px;
-    font-size: 1.4em;
+    border-radius: 8px;
+    padding: 0;
+    font-size: 2.2em;
     font-weight: 600;
     cursor: pointer;
     box-shadow: 0 2px 8px rgba(56, 142, 60, 0.13);
@@ -542,6 +542,7 @@ h1 {
     display: flex;
     align-items: center;
     justify-content: center;
+    line-height: 1;
 }
 
 .page-btn:hover:not(:disabled) {
@@ -636,10 +637,11 @@ h1 {
     }
     
     .page-btn {
-        padding: 14px;
-        font-size: 1.2em;
+        padding: 0;
+        font-size: 2em;
         width: 44px;
         height: 44px;
+        line-height: 1;
     }
     
     #page-info {
