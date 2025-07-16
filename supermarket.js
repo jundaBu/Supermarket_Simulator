@@ -451,6 +451,179 @@ class KMeansClusterer {
     }
 }
 
+// Association Rule Mining using Apriori Algorithm
+class AprioriAlgorithm {
+    constructor(minSupport = 0.1, minConfidence = 0.5) {
+        this.minSupport = minSupport;
+        this.minConfidence = minConfidence;
+        this.transactions = [];
+        this.itemCounts = {};
+        this.frequentItemsets = [];
+        this.associationRules = [];
+    }
+
+    // Convert transactions to itemsets
+    prepareTransactions(transactions) {
+        this.transactions = transactions.map(tx => 
+            tx.items.map(item => item.item)
+        );
+        
+        // Count individual items
+        this.itemCounts = {};
+        this.transactions.forEach(transaction => {
+            transaction.forEach(item => {
+                this.itemCounts[item] = (this.itemCounts[item] || 0) + 1;
+            });
+        });
+        
+        return this.transactions;
+    }
+
+    // Generate combinations of items
+    generateCombinations(items, k) {
+        if (k === 1) {
+            return items.map(item => [item]);
+        }
+        
+        const combinations = [];
+        for (let i = 0; i < items.length; i++) {
+            const smallerCombinations = this.generateCombinations(items.slice(i + 1), k - 1);
+            smallerCombinations.forEach(combination => {
+                combinations.push([items[i], ...combination]);
+            });
+        }
+        return combinations;
+    }
+
+    // Calculate support for an itemset
+    calculateSupport(itemset) {
+        const count = this.transactions.filter(transaction => 
+            itemset.every(item => transaction.includes(item))
+        ).length;
+        return count / this.transactions.length;
+    }
+
+    // Find frequent itemsets of size k
+    findFrequentItemsets(candidates, k) {
+        const frequent = [];
+        
+        candidates.forEach(candidate => {
+            const support = this.calculateSupport(candidate);
+            if (support >= this.minSupport) {
+                frequent.push({
+                    itemset: candidate,
+                    support: support,
+                    count: Math.round(support * this.transactions.length)
+                });
+            }
+        });
+        
+        return frequent;
+    }
+
+    // Generate association rules from frequent itemsets
+    generateAssociationRules() {
+        this.associationRules = [];
+        
+        // Only generate rules from itemsets with 2 or more items
+        const multiItemsets = this.frequentItemsets.filter(fs => fs.itemset.length >= 2);
+        
+        multiItemsets.forEach(frequentItemset => {
+            const itemset = frequentItemset.itemset;
+            const itemsetSupport = frequentItemset.support;
+            
+            // Generate all possible antecedents (left side of rule)
+            for (let i = 1; i < itemset.length; i++) {
+                const antecedentCombinations = this.generateCombinations(itemset, i);
+                
+                antecedentCombinations.forEach(antecedent => {
+                    const consequent = itemset.filter(item => !antecedent.includes(item));
+                    
+                    if (consequent.length > 0) {
+                        const antecedentSupport = this.calculateSupport(antecedent);
+                        const confidence = itemsetSupport / antecedentSupport;
+                        
+                        if (confidence >= this.minConfidence) {
+                            // Calculate lift
+                            const consequentSupport = this.calculateSupport(consequent);
+                            const lift = confidence / consequentSupport;
+                            
+                            this.associationRules.push({
+                                antecedent: antecedent,
+                                consequent: consequent,
+                                support: itemsetSupport,
+                                confidence: confidence,
+                                lift: lift
+                            });
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Sort rules by confidence (descending)
+        this.associationRules.sort((a, b) => b.confidence - a.confidence);
+        
+        return this.associationRules;
+    }
+
+    // Main Apriori algorithm
+    runApriori(transactions) {
+        console.log(`Starting Apriori algorithm with ${transactions.length} transactions`);
+        
+        if (transactions.length < 3) {
+            return {
+                success: false,
+                error: "Need at least 3 transactions for meaningful association rule mining"
+            };
+        }
+
+        this.prepareTransactions(transactions);
+        this.frequentItemsets = [];
+        
+        // Get all unique items
+        const allItems = [...new Set(Object.keys(this.itemCounts))];
+        
+        // Start with 1-itemsets
+        let k = 1;
+        let candidates = this.generateCombinations(allItems, k);
+        
+        while (candidates.length > 0) {
+            const frequent = this.findFrequentItemsets(candidates, k);
+            
+            if (frequent.length === 0) {
+                break;
+            }
+            
+            this.frequentItemsets.push(...frequent);
+            
+            // Generate candidates for next iteration
+            k++;
+            if (k > 5) break; // Limit to prevent excessive computation
+            
+            const frequentItems = frequent.map(f => f.itemset).flat();
+            const uniqueFrequentItems = [...new Set(frequentItems)];
+            candidates = this.generateCombinations(uniqueFrequentItems, k);
+        }
+        
+        console.log(`Found ${this.frequentItemsets.length} frequent itemsets`);
+        
+        // Generate association rules
+        this.generateAssociationRules();
+        
+        console.log(`Generated ${this.associationRules.length} association rules`);
+        
+        return {
+            success: true,
+            frequentItemsets: this.frequentItemsets,
+            associationRules: this.associationRules,
+            totalTransactions: this.transactions.length,
+            minSupport: this.minSupport,
+            minConfidence: this.minConfidence
+        };
+    }
+}
+
 // Helper function to categorize items for better cluster descriptions
 function categorizeItems(items) {
     const categories = {
@@ -615,14 +788,162 @@ function showClusteringResults(result) {
 const analyticsBtn = document.getElementById('analytics-btn');
 const analyticsModal = document.getElementById('analytics-modal');
 const closeAnalyticsBtn = document.getElementById('close-analytics-btn');
+const kmeansAnalysisBtn = document.getElementById('kmeans-analysis-btn');
+const aprioriAnalysisBtn = document.getElementById('apriori-analysis-btn');
+
+// Track current analysis type
+let currentAnalysisType = 'kmeans';
 
 analyticsBtn.addEventListener('click', () => {
+    // Show modal first
+    analyticsModal.classList.remove('hidden');
+    
+    // Run the current analysis type
+    if (currentAnalysisType === 'kmeans') {
+        analyzeCustomerBehavior();
+    } else {
+        runAssociationRuleAnalysis();
+    }
+});
+
+kmeansAnalysisBtn.addEventListener('click', () => {
+    currentAnalysisType = 'kmeans';
+    
+    // Update button states
+    kmeansAnalysisBtn.classList.add('active');
+    aprioriAnalysisBtn.classList.remove('active');
+    
+    // Run K-means analysis
     analyzeCustomerBehavior();
+});
+
+aprioriAnalysisBtn.addEventListener('click', () => {
+    currentAnalysisType = 'apriori';
+    
+    // Update button states
+    aprioriAnalysisBtn.classList.add('active');
+    kmeansAnalysisBtn.classList.remove('active');
+    
+    // Run Apriori analysis
+    runAssociationRuleAnalysis();
 });
 
 closeAnalyticsBtn.addEventListener('click', () => {
     analyticsModal.classList.add('hidden');
 });
+
+// Run Association Rule Mining Analysis
+function runAssociationRuleAnalysis() {
+    if (transactions.length < 3) {
+        showNotification("Need at least 3 transactions for meaningful association rule mining");
+        return;
+    }
+
+    const apriori = new AprioriAlgorithm(0.1, 0.4); // 10% min support, 40% min confidence
+    const result = apriori.runApriori(transactions);
+    
+    if (!result.success) {
+        showNotification(result.error);
+        return;
+    }
+
+    showAssociationRuleResults(result);
+}
+
+// Display Association Rule Mining results
+function showAssociationRuleResults(result) {
+    const contentDiv = document.getElementById('analytics-content');
+    
+    let html = `<div class="analytics-summary">
+        <p><strong>Association Rule Mining Complete!</strong></p>
+        <p>Found <strong>${result.frequentItemsets.length}</strong> frequent itemsets and <strong>${result.associationRules.length}</strong> association rules from ${result.totalTransactions} transactions.</p>
+        <p style="font-size: 0.9em; color: #666;">
+            <em>Min Support: ${(result.minSupport * 100).toFixed(1)}% • Min Confidence: ${(result.minConfidence * 100).toFixed(1)}%</em>
+        </p>
+    </div>`;
+    
+    if (result.associationRules.length > 0) {
+        html += `<div class="association-rules-container">
+            <h3 style="color: #e67e22; margin-bottom: 16px;">🔗 Association Rules</h3>`;
+        
+        // Show top 10 rules
+        const topRules = result.associationRules.slice(0, 10);
+        
+        topRules.forEach((rule, index) => {
+            const antecedentText = rule.antecedent.join(' + ');
+            const consequentText = rule.consequent.join(' + ');
+            
+            html += `<div class="association-rule">
+                <div class="rule-header">
+                    Rule ${index + 1}: ${antecedentText} → ${consequentText}
+                </div>
+                <div class="rule-description">
+                    When customers buy <strong>${antecedentText}</strong>, they also buy <strong>${consequentText}</strong>
+                </div>
+                <div class="rule-metrics">
+                    <div class="metric">
+                        <span class="metric-label">Support:</span>
+                        <span class="metric-value">${(rule.support * 100).toFixed(1)}%</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Confidence:</span>
+                        <span class="metric-value">${(rule.confidence * 100).toFixed(1)}%</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Lift:</span>
+                        <span class="metric-value">${rule.lift.toFixed(2)}</span>
+                    </div>
+                </div>
+            </div>`;
+        });
+        
+        html += `</div>`;
+    }
+    
+    // Show frequent itemsets
+    if (result.frequentItemsets.length > 0) {
+        html += `<div class="frequent-itemsets">
+            <h4>📊 Frequent Itemsets</h4>
+            <p>Items that appear together frequently (above ${(result.minSupport * 100).toFixed(1)}% support threshold):</p>`;
+        
+        // Group by itemset size
+        const itemsetsBySize = {};
+        result.frequentItemsets.forEach(itemset => {
+            const size = itemset.itemset.length;
+            if (!itemsetsBySize[size]) itemsetsBySize[size] = [];
+            itemsetsBySize[size].push(itemset);
+        });
+        
+        Object.keys(itemsetsBySize).sort((a, b) => b - a).forEach(size => {
+            if (size > 1) { // Only show itemsets with 2+ items
+                html += `<div style="margin-bottom: 12px;">
+                    <strong>${size}-item sets:</strong><br>`;
+                
+                itemsetsBySize[size].slice(0, 5).forEach(itemset => {
+                    html += `<div style="margin: 4px 0;">`;
+                    itemset.itemset.forEach(item => {
+                        html += `<span class="itemset-item">${item}</span>`;
+                    });
+                    html += ` <span style="color: #666;">(${(itemset.support * 100).toFixed(1)}% support, ${itemset.count} transactions)</span>`;
+                    html += `</div>`;
+                });
+                
+                html += `</div>`;
+            }
+        });
+        
+        html += `</div>`;
+    }
+    
+    if (result.associationRules.length === 0) {
+        html += `<div class="no-data-message">
+            <p>No association rules found with the current thresholds.</p>
+            <p>Try adding more transactions or lowering the confidence threshold.</p>
+        </div>`;
+    }
+    
+    contentDiv.innerHTML = html;
+}
 
 // Database modal logic
 function renderDatabaseTable() {
