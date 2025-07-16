@@ -454,6 +454,24 @@ function showClusteringResults(result) {
         <p style="font-size: 0.9em; color: #666;"><em>Analysis will update when new transactions are added through checkout.</em></p>
     </div>`;
     
+    // Available cluster names pool
+    const availableNames = [
+        "🛍️ Bulk Shoppers",
+        "🥗 Health-Conscious Buyers", 
+        "🏃‍♂️ Quick Shoppers",
+        "👨‍👩‍👧‍👦 Family Shoppers",
+        "🎯 Specialty Buyers",
+        "🛒 Regular Shoppers",
+        "💰 Budget Shoppers",
+        "🏪 Convenience Shoppers",
+        "🥘 Meal Planners",
+        "🎉 Occasional Shoppers"
+    ];
+    
+    // Track used names to prevent duplicates
+    const usedNames = new Set();
+    let nameIndex = 0;
+    
     result.clusters.forEach((cluster, i) => {
         if (cluster.length === 0) return;
         
@@ -475,17 +493,18 @@ function showClusteringResults(result) {
         
         const avgTransactionSize = (totalQuantity / cluster.length).toFixed(1);
         
-        // Generate cluster description
-        const clusterNames = [
-            "🛍️ Bulk Shoppers",
-            "🥗 Health-Conscious Buyers", 
-            "🏃‍♂️ Quick Shoppers",
-            "👨‍👩‍👧‍👦 Family Shoppers",
-            "🎯 Specialty Buyers"
-        ];
+        // Get unique cluster name
+        let clusterName;
+        if (nameIndex < availableNames.length) {
+            clusterName = availableNames[nameIndex];
+            nameIndex++;
+        } else {
+            clusterName = `Customer Segment ${nameIndex + 1}`;
+            nameIndex++;
+        }
         
         html += `<div class="cluster-group">
-            <h4>${clusterNames[i] || `Customer Segment ${i + 1}`} 
+            <h4>${clusterName} 
                 <span style="font-weight: normal; color: #666;">(${cluster.length} transactions)</span>
             </h4>
             
