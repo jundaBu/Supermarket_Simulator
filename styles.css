@@ -663,3 +663,29 @@ h1 {
         font-size: 1.1em;
     }
 }
+
+.database-actions {
+    display: flex;
+    flex-direction: row;
+    gap: 12px;
+    margin-top: 16px;
+    justify-content: flex-end;
+}
+
+#fill-database-btn {
+    background: #ff9800;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 10px 22px;
+    font-size: 1.08em;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(255, 152, 0, 0.13);
+    transition: background 0.2s, box-shadow 0.2s;
+}
+
+#fill-database-btn:hover {
+    background: #f57c00;
+    box-shadow: 0 4px 16px rgba(255, 152, 0, 0.18);
+}

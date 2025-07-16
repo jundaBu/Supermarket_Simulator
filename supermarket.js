@@ -214,12 +214,6 @@ document.addEventListener('DOMContentLoaded', () => {
     updateCartCount();
 });
 
-// Initial setup
-document.addEventListener('DOMContentLoaded', () => {
-    updatePagination();
-    updateCartCount();
-});
-
 // Cart and database modal logic
 const cartBtn = document.getElementById('cart-btn');
 const cartModal = document.getElementById('cart-modal');
@@ -261,6 +255,20 @@ checkoutBtn.addEventListener('click', () => {
 const databaseBtn = document.getElementById('database-btn');
 const databaseModal = document.getElementById('database-modal');
 const closeDatabaseBtn = document.getElementById('close-database-btn');
+const fillDatabaseBtn = document.getElementById('fill-database-btn');
+
+databaseBtn.addEventListener('click', () => {
+    renderDatabaseTable();
+    databaseModal.classList.remove('hidden');
+});
+
+fillDatabaseBtn.addEventListener('click', () => {
+    fillDatabaseWithRandomTransactions();
+});
+
+closeDatabaseBtn.addEventListener('click', () => {
+    databaseModal.classList.add('hidden');
+});
 
 // K-means clustering implementation
 class KMeansClusterer {
@@ -300,28 +308,42 @@ class KMeansClusterer {
         );
     }
 
-    // Initialize centroids with deterministic seeding based on data
+    // Initialize centroids with improved K-means++ inspired seeding
     initializeCentroids(data) {
         this.centroids = [];
         const numFeatures = data[0].vector.length;
         
-        // Use a simple deterministic approach: spread centroids evenly
-        for (let i = 0; i < this.k; i++) {
-            const centroid = new Array(numFeatures);
+        if (data.length === 0) return;
+        
+        // First centroid: choose a random data point
+        const firstCentroid = [...data[Math.floor(Math.random() * data.length)].vector];
+        this.centroids.push(firstCentroid);
+        
+        // Remaining centroids: choose points far from existing centroids
+        for (let i = 1; i < this.k; i++) {
+            const distances = data.map(point => {
+                // Find minimum distance to any existing centroid
+                let minDistToCenter = Infinity;
+                this.centroids.forEach(centroid => {
+                    const dist = this.distance(point.vector, centroid);
+                    minDistToCenter = Math.min(minDistToCenter, dist);
+                });
+                return minDistToCenter;
+            });
             
-            // For each feature, use different points as seeds
-            for (let j = 0; j < numFeatures; j++) {
-                const values = data.map(d => d.vector[j]).filter(v => v > 0);
-                if (values.length > 0) {
-                    // Use deterministic selection based on cluster index
-                    const seedIndex = (i * 13 + j * 7) % values.length;
-                    centroid[j] = values[seedIndex] || 0;
-                } else {
-                    centroid[j] = 0;
-                }
-            }
-            this.centroids.push(centroid);
+            // Choose point with maximum distance to nearest centroid
+            const maxDistIndex = distances.indexOf(Math.max(...distances));
+            this.centroids.push([...data[maxDistIndex].vector]);
         }
+        
+        // Add some small random variation to prevent identical centroids
+        this.centroids.forEach(centroid => {
+            centroid.forEach((val, j) => {
+                if (val > 0) {
+                    centroid[j] += (Math.random() - 0.5) * 0.1;
+                }
+            });
+        });
     }
 
     // Assign each point to the nearest centroid
@@ -366,8 +388,10 @@ class KMeansClusterer {
         });
     }
 
-    // Main clustering algorithm
+    // Main clustering algorithm with improved validation
     cluster(transactions, maxIterations = 100) {
+        console.log(`Starting K-means clustering with ${this.k} clusters for ${transactions.length} transactions`);
+        
         if (transactions.length < this.k) {
             return { 
                 success: false, 
@@ -383,13 +407,23 @@ class KMeansClusterer {
             };
         }
 
+        console.log(`Prepared ${data.length} data points with ${data[0].vector.length} features`);
+        
         this.initializeCentroids(data);
+        console.log('Initialized centroids');
         
         let iteration = 0;
         for (iteration = 0; iteration < maxIterations; iteration++) {
             const oldCentroids = this.centroids.map(c => [...c]);
             
             this.assignToClusters(data);
+            
+            // Check for empty clusters
+            const emptyClusters = this.clusters.filter(cluster => cluster.length === 0).length;
+            if (emptyClusters > 0) {
+                console.log(`Warning: ${emptyClusters} empty clusters at iteration ${iteration + 1}`);
+            }
+            
             this.updateCentroids();
             
             // Check for convergence
@@ -397,8 +431,15 @@ class KMeansClusterer {
                 this.distance(centroid, oldCentroids[i]) < 0.001
             );
             
-            if (converged) break;
+            if (converged) {
+                console.log(`Converged after ${iteration + 1} iterations`);
+                break;
+            }
         }
+        
+        // Log final cluster sizes
+        const clusterSizes = this.clusters.map(cluster => cluster.length);
+        console.log(`Final cluster sizes: [${clusterSizes.join(', ')}]`);
         
         return {
             success: true,
@@ -408,6 +449,31 @@ class KMeansClusterer {
             iterations: iteration + 1
         };
     }
+}
+
+// Helper function to categorize items for better cluster descriptions
+function categorizeItems(items) {
+    const categories = {
+        'Food': ['Apple', 'Banana', 'Orange', 'Strawberry', 'Grapes', 'Watermelon', 'Tomato', 'Lettuce', 'Carrot', 'Broccoli', 'Potato', 'Onion', 'Milk', 'Eggs', 'Cheese', 'Butter', 'Ice Cream', 'Chicken', 'Beef', 'Pork', 'Fish', 'Shrimp', 'Ham', 'Sausage', 'Bread', 'Rice', 'Pasta', 'Cereal', 'Crackers', 'Cookies', 'Chips', 'Nuts', 'Chocolate', 'Coffee', 'Tea', 'Juice'],
+        'Clothing': ['T-Shirt', 'Jeans', 'Dress', 'Jacket', 'Sweater', 'Shoes', 'Boots', 'Sandals', 'Hat', 'Socks', 'Underwear', 'Scarf'],
+        'Electronics': ['Watch', 'Phone', 'Laptop', 'Computer', 'Camera', 'TV', 'Flashlight', 'Printer', 'PS5', 'Radio', 'Clock', 'Microphone'],
+        'Sports': ['Soccer Ball', 'Basketball', 'Tennis Ball', 'Tennis Racket', 'Baseball', 'Baseball Bat', 'Golf Ball', 'Yoga Mat', 'Dumbbells', 'Swimming Goggles', 'Bicycle Helmet', 'Running Shoes']
+    };
+    
+    const categoryCounts = {};
+    items.forEach(item => {
+        for (const [category, categoryItems] of Object.entries(categories)) {
+            if (categoryItems.includes(item)) {
+                categoryCounts[category] = (categoryCounts[category] || 0) + 1;
+                break;
+            }
+        }
+    });
+    
+    return Object.entries(categoryCounts)
+        .sort(([,a], [,b]) => b - a)
+        .slice(0, 2)
+        .map(([category]) => category);
 }
 
 // Analyze customer behavior using k-means clustering
@@ -493,23 +559,34 @@ function showClusteringResults(result) {
         
         const avgTransactionSize = (totalQuantity / cluster.length).toFixed(1);
         
-        // Get unique cluster name
+        // Get unique cluster name with smart categorization
         let clusterName;
         if (nameIndex < availableNames.length) {
             clusterName = availableNames[nameIndex];
-            nameIndex++;
         } else {
             clusterName = `Customer Segment ${nameIndex + 1}`;
-            nameIndex++;
         }
         
+        // Add smart cluster description based on top items
+        let clusterDescription = '';
+        if (topItems.length > 0) {
+            const topCategories = categorizeItems(topItems.map(([item]) => item));
+            if (topCategories.length > 0) {
+                clusterDescription = ` - Focus on ${topCategories.join(', ')}`;
+            }
+        }
+        
+        nameIndex++;
+        
         html += `<div class="cluster-group">
-            <h4>${clusterName} 
+            <h4>${clusterName}${clusterDescription}
                 <span style="font-weight: normal; color: #666;">(${cluster.length} transactions)</span>
             </h4>
             
             <div class="cluster-stats">
                 <strong>Average items per transaction:</strong> ${avgTransactionSize}
+                <br><strong>Total items in cluster:</strong> ${totalQuantity}
+                <br><strong>Cluster diversity:</strong> ${Object.keys(itemCounts).length} different items
             </div>
             
             <h5 style="margin: 12px 0 8px 0; color: #7b1fa2;">Most Popular Items:</h5>
@@ -578,14 +655,74 @@ function renderDatabaseTable() {
     });
 }
 
-databaseBtn.addEventListener('click', () => {
+// Fill database with random transactions
+function fillDatabaseWithRandomTransactions() {
+    // All available items from the supermarket
+    const availableItems = [
+        // Fruits & Vegetables
+        "Apple", "Banana", "Orange", "Strawberry", "Grapes", "Watermelon",
+        "Tomato", "Lettuce", "Carrot", "Broccoli", "Potato", "Onion",
+        
+        // Dairy & Meat
+        "Milk", "Eggs", "Cheese", "Butter", "Ice Cream", "Chicken",
+        "Beef", "Pork", "Fish", "Shrimp", "Ham", "Sausage",
+        
+        // Pantry & Snacks
+        "Bread", "Rice", "Pasta", "Cereal", "Crackers", "Cookies",
+        "Chips", "Nuts", "Chocolate", "Coffee", "Tea", "Juice",
+        
+        // Clothing
+        "T-Shirt", "Jeans", "Dress", "Jacket", "Sweater", "Shoes",
+        "Boots", "Sandals", "Hat", "Socks", "Underwear", "Scarf",
+        
+        // Electronics
+        "Watch", "Phone", "Laptop", "Computer", "Camera", "TV",
+        "Flashlight", "Printer", "PS5", "Radio", "Clock", "Microphone",
+        
+        // Sports Equipment
+        "Soccer Ball", "Basketball", "Tennis Ball", "Tennis Racket", "Baseball", "Baseball Bat",
+        "Golf Ball", "Yoga Mat", "Dumbbells", "Swimming Goggles", "Bicycle Helmet", "Running Shoes"
+    ];
+    
+    // Generate 50 random transactions
+    for (let i = 0; i < 50; i++) {
+        const itemsPurchased = [];
+        let totalItems = 0;
+        
+        // Each transaction has 1-8 different items
+        const numItems = Math.floor(Math.random() * 8) + 1;
+        const selectedItems = new Set();
+        
+        // Select random unique items for this transaction
+        while (selectedItems.size < numItems) {
+            const randomItem = availableItems[Math.floor(Math.random() * availableItems.length)];
+            selectedItems.add(randomItem);
+        }
+        
+        // Assign random quantities to selected items
+        selectedItems.forEach(item => {
+            const qty = Math.floor(Math.random() * 5) + 1; // 1-5 quantity
+            itemsPurchased.push({ item, qty });
+            totalItems += qty;
+        });
+        
+        // Add transaction to database
+        transactions.push({
+            transactionNumber: transactionCounter++,
+            items: itemsPurchased,
+            totalItems: totalItems
+        });
+    }
+    
+    // Invalidate cached analysis since we added new transactions
+    cachedAnalysis = null;
+    
+    // Update the database table display
     renderDatabaseTable();
-    databaseModal.classList.remove('hidden');
-});
-
-closeDatabaseBtn.addEventListener('click', () => {
-    databaseModal.classList.add('hidden');
-});
+    
+    // Show notification
+    showNotification("Successfully added 50 random transactions to the database!");
+}
 
 // Optional: For debugging, you can log transactions to the console
 // window.transactions = transactions;
