@@ -643,10 +643,10 @@ class AprioriAlgorithm {
     runApriori(transactions) {
         console.log(`Starting Apriori algorithm with ${transactions.length} transactions`);
         
-        if (transactions.length < 3) {
+        if (transactions.length < 5) {
             return {
                 success: false,
-                error: "Need at least 3 transactions for meaningful association rule mining"
+                error: "Need at least 5 transactions for meaningful association rule mining"
             };
         }
 
@@ -912,10 +912,233 @@ analyticsModal.addEventListener('click', (e) => {
     }
 });
 
+// For You (Recommendations) modal logic
+const forYouBtn = document.getElementById('for-you-btn');
+const forYouModal = document.getElementById('for-you-modal');
+const closeForYouBtn = document.getElementById('close-for-you-btn');
+
+forYouBtn.addEventListener('click', () => {
+    forYouModal.classList.remove('hidden');
+    generatePersonalizedRecommendations();
+});
+
+closeForYouBtn.addEventListener('click', () => {
+    forYouModal.classList.add('hidden');
+});
+
+// Close for-you modal when clicking outside the modal content
+forYouModal.addEventListener('click', (e) => {
+    if (e.target === forYouModal) {
+        forYouModal.classList.add('hidden');
+    }
+});
+
+// Generate personalized recommendations based on user's cart and association rules
+function generatePersonalizedRecommendations() {
+    const contentDiv = document.getElementById('recommendations-content');
+    
+    // Check if we have enough transaction data
+    if (transactions.length < 5) {
+        contentDiv.innerHTML = `
+            <div class="no-data-message">
+                <p><strong>🔍 Not enough data for personalized recommendations</strong></p>
+                <p>We need at least 5 transactions in the database to generate meaningful recommendations.</p>
+                <p>Try adding some transactions by:</p>
+                <ul>
+                    <li>Making purchases through the shopping cart</li>
+                    <li>Using the "Fill" button in the Database to add sample transactions</li>
+                </ul>
+            </div>`;
+        return;
+    }
+    
+    // Get current cart items
+    const cartItems = Object.keys(cart).filter(item => cart[item] > 0);
+    
+    // Run association rule analysis to get recommendations
+    const apriori = new AprioriAlgorithm(0.05, 0.3); // Lower thresholds for recommendations
+    const result = apriori.runApriori(transactions);
+    
+    if (!result.success) {
+        contentDiv.innerHTML = `
+            <div class="no-data-message">
+                <p><strong>⚠️ Unable to generate recommendations</strong></p>
+                <p>${result.error}</p>
+            </div>`;
+        return;
+    }
+    
+    let html = `<div class="recommendations-header">
+        <p><strong>Based on your shopping history and similar customers' behavior</strong></p>
+    </div>`;
+    
+    let recommendations = [];
+    
+    if (cartItems.length > 0) {
+        // Generate recommendations based on current cart
+        html += `<div class="current-cart-section">
+            <h3>🛒 Since you're buying: ${cartItems.join(', ')}</h3>
+            <p>Other customers who bought these items also purchased:</p>
+        </div>`;
+        
+        // Find association rules where cart items are in the antecedent
+        const relevantRules = result.associationRules.filter(rule => 
+            rule.antecedent.some(item => cartItems.includes(item))
+        );
+        
+        // Get recommended items from consequents
+        const recommendedItems = new Set();
+        relevantRules.forEach(rule => {
+            rule.consequent.forEach(item => {
+                if (!cartItems.includes(item)) {
+                    recommendedItems.add({
+                        item: item,
+                        confidence: rule.confidence,
+                        lift: rule.lift,
+                        reason: `Often bought with ${rule.antecedent.join(', ')}`
+                    });
+                }
+            });
+        });
+        
+        recommendations.push(...Array.from(recommendedItems));
+    } else {
+        // Generate general recommendations based on popular association rules
+        html += `<div class="general-recommendations-section">
+            <h3>⭐ Popular Item Combinations</h3>
+            <p>Here are some popular items that customers often buy together:</p>
+        </div>`;
+        
+        // Get top association rules and recommend items from them
+        const topRules = result.associationRules.slice(0, 10);
+        const popularItems = new Set();
+        
+        topRules.forEach(rule => {
+            rule.consequent.forEach(item => {
+                popularItems.add({
+                    item: item,
+                    confidence: rule.confidence,
+                    lift: rule.lift,
+                    reason: `Often bought with ${rule.antecedent.join(', ')}`
+                });
+            });
+        });
+        
+        recommendations.push(...Array.from(popularItems));
+    }
+    
+    // Sort recommendations by confidence and remove duplicates
+    const uniqueRecommendations = recommendations.reduce((acc, current) => {
+        const existing = acc.find(item => item.item === current.item);
+        if (!existing || current.confidence > existing.confidence) {
+            acc = acc.filter(item => item.item !== current.item);
+            acc.push(current);
+        }
+        return acc;
+    }, []);
+    
+    uniqueRecommendations.sort((a, b) => b.confidence - a.confidence);
+    
+    if (uniqueRecommendations.length > 0) {
+        html += `<div class="recommendations-grid">`;
+        
+        // Show top 8 recommendations
+        uniqueRecommendations.slice(0, 8).forEach(rec => {
+            const emoji = getItemEmoji(rec.item);
+            html += `
+                <div class="recommendation-card">
+                    <div class="recommendation-item">
+                        <span class="recommendation-emoji">${emoji}</span>
+                        <span class="recommendation-name">${rec.item}</span>
+                    </div>
+                    <div class="recommendation-reason">${rec.reason}</div>
+                    <div class="recommendation-stats">
+                        <span class="confidence-badge">${(rec.confidence * 100).toFixed(0)}% confidence</span>
+                        ${rec.lift > 1 ? `<span class="lift-badge">+${((rec.lift - 1) * 100).toFixed(0)}% lift</span>` : ''}
+                    </div>
+                    <button class="add-to-cart-btn" onclick="addRecommendationToCart('${rec.item}')">
+                        Add to Cart
+                    </button>
+                </div>`;
+        });
+        
+        html += `</div>`;
+    } else {
+        html += `<div class="no-recommendations">
+            <p>No specific recommendations available yet.</p>
+            <p>Add more items to your cart or complete more transactions to get personalized suggestions!</p>
+        </div>`;
+    }
+    
+    // Add general shopping insights
+    html += `<div class="shopping-insights">
+        <h3>📊 Shopping Insights</h3>
+        <p>Based on ${result.totalTransactions} transactions in our database:</p>
+        <ul>`;
+    
+    // Get most popular item combinations
+    const topItemsets = result.frequentItemsets
+        .filter(itemset => itemset.itemset.length >= 2)
+        .sort((a, b) => b.support - a.support)
+        .slice(0, 3);
+    
+    topItemsets.forEach(itemset => {
+        html += `<li>${itemset.itemset.join(' + ')} appear together in ${(itemset.support * 100).toFixed(1)}% of transactions</li>`;
+    });
+    
+    html += `</ul></div>`;
+    
+    contentDiv.innerHTML = html;
+}
+
+// Helper function to get emoji for items
+function getItemEmoji(itemName) {
+    const emojiMap = {
+        // Fruits & Vegetables
+        'Apple': '🍎', 'Banana': '🍌', 'Orange': '🍊', 'Strawberry': '🍓',
+        'Grapes': '🍇', 'Watermelon': '🍉', 'Tomato': '🍅', 'Lettuce': '🥬',
+        'Carrot': '🥕', 'Broccoli': '🥦', 'Potato': '🥔', 'Onion': '🧅',
+        
+        // Dairy & Meat
+        'Milk': '🥛', 'Eggs': '🥚', 'Cheese': '🧀', 'Butter': '🧈',
+        'Ice Cream': '🍦', 'Chicken': '🍗', 'Beef': '🥩', 'Pork': '🥓',
+        'Fish': '🐟', 'Shrimp': '🦐', 'Ham': '🍖', 'Sausage': '🌭',
+        
+        // Pantry & Snacks
+        'Bread': '🍞', 'Rice': '🍚', 'Pasta': '🍝', 'Cereal': '🥣',
+        'Crackers': '🍘', 'Cookies': '🍪', 'Chips': '🥔', 'Nuts': '🥜',
+        'Chocolate': '🍫', 'Coffee': '☕', 'Tea': '🍵', 'Juice': '🧃',
+        
+        // Clothing
+        'T-Shirt': '👕', 'Jeans': '👖', 'Dress': '👗', 'Jacket': '🧥',
+        'Sweater': '🧶', 'Shoes': '👟', 'Boots': '🥾', 'Sandals': '👡',
+        'Hat': '🧢', 'Socks': '🧦', 'Underwear': '🩲', 'Scarf': '🧣',
+        
+        // Electronics
+        'Watch': '⌚', 'Phone': '📱', 'Laptop': '💻', 'Computer': '🖥️',
+        'Camera': '📷', 'TV': '📺', 'Flashlight': '🔦', 'Printer': '🖨️',
+        'PS5': '🎮', 'Radio': '📻', 'Clock': '🕰️', 'Microphone': '🎤',
+        
+        // Sports Equipment
+        'Soccer Ball': '⚽', 'Basketball': '🏀', 'Tennis Ball': '🎾', 'Tennis Racket': '🏓',
+        'Baseball': '⚾', 'Baseball Bat': '🏏', 'Golf Ball': '⛳', 'Yoga Mat': '🧘',
+        'Dumbbells': '🏋️', 'Swimming Goggles': '🥽', 'Bicycle Helmet': '🚴', 'Running Shoes': '👟'
+    };
+    
+    return emojiMap[itemName] || '🛍️';
+}
+
+// Function to add recommended item to cart
+function addRecommendationToCart(itemName) {
+    cart[itemName] = (cart[itemName] || 0) + 1;
+    updateCartCount();
+    showNotification(`Added ${itemName} to cart!`);
+}
+
 // Run Association Rule Mining Analysis
 function runAssociationRuleAnalysis() {
-    if (transactions.length < 3) {
-        showNotification("Need at least 3 transactions for meaningful association rule mining");
+    if (transactions.length < 5) {
+        showNotification("Need at least 5 transactions for meaningful association rule mining");
         return;
     }
 

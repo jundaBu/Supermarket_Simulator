@@ -11,6 +11,7 @@
         <h1 style="font-family: 'Pacifico', cursive;">SupermAIket</h1>
         <div class="header-actions">
             <button id="database-btn" class="side-btn">Database</button>
+            <button id="for-you-btn" class="side-btn red-btn">For You</button>
             <button id="analytics-btn" class="side-btn">Analytics</button>
             <button id="cart-btn">
                 <span>Cart (<span id="cart-count">0</span>)</span>
@@ -397,6 +398,15 @@
             </div>
             <div id="analytics-content">
                 <!-- Analytics results will be inserted here -->
+            </div>
+        </div>
+    </div>
+    <div id="for-you-modal" class="modal hidden">
+        <div class="modal-content">
+            <button id="close-for-you-btn" class="close-btn-circle">×</button>
+            <h2>🎯 For You - Personalized Recommendations</h2>
+            <div id="recommendations-content">
+                <!-- Recommendations will be inserted here -->
             </div>
         </div>
     </div>
