@@ -125,6 +125,43 @@ function showNotification(message) {
     }, 1800);
 }
 
+function playCheckoutSound() {
+    // Create an audio context for generating a checkout sound
+    try {
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        
+        // Create a pleasant checkout sound sequence
+        const playTone = (frequency, duration, delay = 0) => {
+            setTimeout(() => {
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
+                oscillator.type = 'sine';
+                
+                // Create a smooth envelope
+                gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+                gainNode.gain.linearRampToValueAtTime(0.1, audioContext.currentTime + 0.01);
+                gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + duration);
+                
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + duration);
+            }, delay);
+        };
+        
+        // Play a pleasant checkout melody: C-E-G chord progression
+        playTone(523.25, 0.2, 0);    // C5
+        playTone(659.25, 0.2, 100);  // E5
+        playTone(783.99, 0.3, 200);  // G5
+        
+    } catch (error) {
+        console.log('Audio not supported or blocked by browser');
+    }
+}
+
 function flyEmojiToCart(emojiElem, btn) {
     const cartBtn = document.getElementById('cart-btn');
     if (!cartBtn || !emojiElem) return;
@@ -212,6 +249,22 @@ nextPageBtn.addEventListener('click', () => {
 document.addEventListener('DOMContentLoaded', () => {
     updatePagination();
     updateCartCount();
+    
+    // Handle welcome message fade out
+    const welcomeMessage = document.getElementById('welcome-message');
+    if (welcomeMessage) {
+        // Start fade out after 2 seconds
+        setTimeout(() => {
+            welcomeMessage.classList.add('fade-out');
+            
+            // Remove the element from DOM after animation completes
+            setTimeout(() => {
+                if (welcomeMessage.parentNode) {
+                    welcomeMessage.parentNode.removeChild(welcomeMessage);
+                }
+            }, 1500); // Wait for CSS transition to complete
+        }, 2000);
+    }
 });
 
 // Cart and database modal logic
@@ -229,6 +282,14 @@ closeCartBtn.addEventListener('click', () => {
     cartModal.classList.add('hidden');
 });
 
+// Close cart modal when clicking outside the modal content
+cartModal.addEventListener('click', (e) => {
+    // Only close if the click is on the modal backdrop, not on the modal content
+    if (e.target === cartModal) {
+        cartModal.classList.add('hidden');
+    }
+});
+
 checkoutBtn.addEventListener('click', () => {
     // Prepare transaction data
     const itemsPurchased = Object.entries(cart).map(([item, qty]) => ({ item, qty }));
@@ -243,6 +304,9 @@ checkoutBtn.addEventListener('click', () => {
         
         // Invalidate cached analysis when new transaction is added
         cachedAnalysis = null;
+        
+        // Play checkout sound
+        playCheckoutSound();
     }
 
     for (const key in cart) delete cart[key];
@@ -268,6 +332,14 @@ fillDatabaseBtn.addEventListener('click', () => {
 
 closeDatabaseBtn.addEventListener('click', () => {
     databaseModal.classList.add('hidden');
+});
+
+// Close database modal when clicking outside the modal content
+databaseModal.addEventListener('click', (e) => {
+    // Only close if the click is on the modal backdrop, not on the modal content
+    if (e.target === databaseModal) {
+        databaseModal.classList.add('hidden');
+    }
 });
 
 // K-means clustering implementation
@@ -830,6 +902,14 @@ aprioriAnalysisBtn.addEventListener('click', () => {
 
 closeAnalyticsBtn.addEventListener('click', () => {
     analyticsModal.classList.add('hidden');
+});
+
+// Close analytics modal when clicking outside the modal content
+analyticsModal.addEventListener('click', (e) => {
+    // Only close if the click is on the modal backdrop, not on the modal content
+    if (e.target === analyticsModal) {
+        analyticsModal.classList.add('hidden');
+    }
 });
 
 // Run Association Rule Mining Analysis
